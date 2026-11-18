@@ -263,7 +263,11 @@ export class Shafts {
       const facing = dir.dot(w.normalOut); // 光源在這扇窗的室外那一側才照得進來
       const v = Math.max(0, Math.min(1, (facing - 0.08) * 4));
       // 光束走到地板為止，最長 24 公尺
-      const len = Math.min(24, travel.y < -0.02 ? w.y1 / -travel.y : 24);
+      let len = Math.min(24, travel.y < -0.02 ? w.y1 / -travel.y : 24);
+      // 光束不穿出大廳的牆
+      if (Math.abs(travel.x) > 1e-3) len = Math.min(len, ((travel.x > 0 ? 18 : -18) - w.center.x) / travel.x);
+      if (Math.abs(travel.z) > 1e-3) len = Math.min(len, ((travel.z > 0 ? 7 : -7) - w.center.z) / travel.z);
+      len = Math.max(0.01, len);
       const put = (i: number, p: THREE.Vector3, u: number, vv: number) => { pos.setXYZ(i, p.x, p.y, p.z); uv.setXY(i, u, vv); vis.setX(i, v); };
       for (let k = 0; k < this.SL; k++) {
         const f = (k + 0.5) / this.SL;
