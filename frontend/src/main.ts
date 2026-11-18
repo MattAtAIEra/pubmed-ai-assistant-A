@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import './style.css';
 import { CASES, HALL, VEST, buildLibrary, type Interactable } from './library';
 import { Walker } from './controls';
@@ -66,6 +67,15 @@ async function boot() {
   const rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
+  // 過濾無效數值：只要畫面裡有一個像素算出 NaN 或無限大，光暈的模糊會把它擴散成大片黑色方塊，
+  // 所以在進入光暈之前先把這種像素歸零，並限制最大亮度。
+  composer.addPass(new ShaderPass({
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+      float safe(float v){ if (isnan(v) || isinf(v)) return 0.0; return (v >= 0.0 && v <= 64.0) ? v : (v > 64.0 ? 64.0 : 0.0); }
+      void main(){ vec4 c = texture2D(tDiffuse, vUv); gl_FragColor = vec4(safe(c.r), safe(c.g), safe(c.b), 1.0); }`,
+  }));
   const bloom = new UnrealBloomPass(new THREE.Vector2(4, 4), 0.3, 0.6, 1.15);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());

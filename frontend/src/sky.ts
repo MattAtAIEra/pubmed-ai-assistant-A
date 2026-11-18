@@ -169,8 +169,8 @@ export function makeSky() {
         vec3 d = normalize(vDir);
         float h = clamp(d.y, -0.2, 1.0);
         vec3 c = mix(uHor, uTop, pow(max(h,0.0), 0.55));
-        c = mix(c, uHor * vec3(0.5,0.56,0.5), smoothstep(0.0, -0.12, d.y));
-        float s = max(dot(d, normalize(uSun)), 0.0);
+        c = mix(c, uHor * vec3(0.5,0.56,0.5), 1.0 - smoothstep(-0.12, 0.0, d.y));
+        float s = clamp(dot(d, normalize(uSun)), 0.0, 1.0);
         c += uSunCol * uSunAmt * (pow(s, 600.0) * 30.0 + pow(s, 24.0) * 0.35);
         gl_FragColor = vec4(c * uGain, 1.0);
       }`,
@@ -207,8 +207,9 @@ export class Shafts {
         void main(){ vUv = uv; vVis = aVis; vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
       fragmentShader: `uniform vec3 uColor; uniform float uOpacity; uniform float uTime; varying vec2 vUv; varying float vVis; varying vec3 vW;
         void main(){
-          float edge = smoothstep(0.0, 0.18, vUv.x) * smoothstep(1.0, 0.82, vUv.x);
-          float along = pow(1.0 - vUv.y, 1.25) * smoothstep(0.0, 0.04, vUv.y);
+          float edge = smoothstep(0.0, 0.18, vUv.x) * (1.0 - smoothstep(0.82, 1.0, vUv.x));
+          // 開啟反鋸齒時，三角形邊緣的 vUv 可能被外插到 0..1 之外；pow 的底數若為負數會算出 NaN，所以先夾住範圍
+          float along = pow(clamp(1.0 - vUv.y, 0.0, 1.0), 1.25) * smoothstep(0.0, 0.04, vUv.y);
           float n = 0.8 + 0.2 * sin(vW.x * 2.3 + vW.y * 3.1 + vW.z * 1.7 + uTime * 0.25);
           float a = uOpacity * vVis * edge * along * n;
           gl_FragColor = vec4(uColor * a, a);
@@ -240,7 +241,7 @@ export class Shafts {
           vA = aVis * (0.35 + 0.65 * abs(sin(t * 6.0 + aSeed.x * 20.0)));
         }`,
       fragmentShader: `uniform vec3 uColor; uniform float uOpacity; varying float vA;
-        void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.1, d) * vA * uOpacity; gl_FragColor = vec4(uColor * a, a); }`,
+        void main(){ float d = length(gl_PointCoord - 0.5); float a = (1.0 - smoothstep(0.1, 0.5, d)) * vA * uOpacity; gl_FragColor = vec4(uColor * a, a); }`,
     });
     this.dust = new THREE.Points(dgeo, this.dustMat);
     this.dust.frustumCulled = false;
