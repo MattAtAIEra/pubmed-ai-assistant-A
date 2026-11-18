@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PubMed 知識殿堂</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap">
+</head>
+<body>
+<canvas id="view" tabindex="0" aria-label="3D 圖書館"></canvas>
+
+<div id="hud" hidden>
+  <div id="loc" class="pill"></div>
+  <div id="crosshair"></div>
+  <div id="prompt" class="pill" hidden></div>
+  <div id="hints" class="pill"><kbd>↑↓</kbd> 前進後退　<kbd>↑</kbd>+<kbd>←→</kbd> 轉向　<kbd>←→</kbd> 平移　<kbd>E</kbd> 互動　<kbd>M</kbd> 平面圖　<kbd>Esc</kbd> 離開</div>
+  <button id="env-btn" class="pill" type="button" aria-expanded="false">時間與天氣</button>
+  <div id="env" class="card" hidden>
+    <div class="row"><label><input type="radio" name="tmode" id="t-auto" checked> 跟著我當地的時間</label><label><input type="radio" name="tmode" id="t-manual"> 手動</label></div>
+    <label class="row" for="t-hour">時刻 <input type="range" id="t-hour" min="0" max="24" step="0.25" value="10"><output id="t-out"></output></label>
+    <label class="row" for="w-sel">天氣 <select id="w-sel"><option value="auto">跟著我當地的天氣</option><option value="clear">晴</option><option value="partly">多雲</option><option value="overcast">陰</option><option value="rain">雨</option><option value="snow">雪</option><option value="fog">霧</option></select></label>
+    <div id="env-status" class="small"></div>
+    <button id="geo-btn" type="button">使用我的位置（更準確）</button>
+    <div class="small">位置預設由時區推估。天氣取自公開氣象服務 Open-Meteo，只送出城市等級的座標。</div>
+  </div>
+</div>
+
+<aside id="panel" class="card" hidden>
+  <button id="panel-close" type="button" aria-label="關閉">Esc 關閉</button>
+  <h2 id="panel-title"></h2>
+  <div id="panel-body"></div>
+</aside>
+
+<div id="map" hidden>
+  <div class="card">
+    <h2>平面圖</h2>
+    <div id="map-svg"></div>
+    <div class="small">點書櫃、櫃檯或書桌可以直接走過去。按 <kbd>M</kbd> 或 <kbd>Esc</kbd> 關閉。</div>
+  </div>
+</div>
+
+<div id="start">
+  <div class="start-inner">
+    <div class="eyebrow">PubMed AI 助理</div>
+    <h1>知識殿堂</h1>
+    <p>一座會替你收書的醫學圖書館。從玄關走進去，朝有光的地方走。</p>
+    <button id="enter" type="button" disabled>正在佈置圖書館…</button>
+    <div class="keys"><kbd>↑</kbd><kbd>↓</kbd> 前進後退　<kbd>↑</kbd>+<kbd>←</kbd> 向左轉　<kbd>←</kbd><kbd>→</kbd> 平移　滑鼠轉動視線　<kbd>E</kbd> 互動</div>
+    <div class="small">第一階段：可以在館內行走、看光影與書本。訂閱與問答在第二、三階段接上。</div>
+  </div>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
